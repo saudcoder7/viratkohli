@@ -4,10 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   gsap,
-  DRAMATIC_TEXT_INITIAL,
-  DRAMATIC_TEXT_TARGET,
-  BODY_TEXT_INITIAL,
-  BODY_TEXT_TARGET,
+  getDramaticInitial,
+  getDramaticTarget,
+  getBodyInitial,
+  getBodyTarget,
 } from "@/lib/gsap";
 import { useGSAP } from "@gsap/react";
 import { POLL_OPTIONS } from "@/lib/constants";
@@ -28,7 +28,7 @@ export default function FanZone() {
     );
   }, []);
 
-  // Update 23: Section Header & column titles reveal with dramatic blur+spin at ~75% viewport
+  // Section Header & column titles reveal
   useGSAP(
     () => {
       if (!sectionRef.current) return;
@@ -44,9 +44,7 @@ export default function FanZone() {
       if (reducedMotion) {
         gsap.set([headerTitle, headerRule, colTitle1, colTitle2, colDesc2], {
           opacity: 1,
-          filter: "blur(0px)",
           scale: 1,
-          rotation: 0,
           y: 0,
         });
         return;
@@ -55,38 +53,43 @@ export default function FanZone() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: headerTitle,
-          start: "top 75%",
-          toggleActions: "play reverse play reverse",
+          start: "top 80%",
+          toggleActions: "play none none none",
         },
       });
 
+      const dramaticInit = getDramaticInitial();
+      const dramaticTgt = getDramaticTarget();
+      const bodyInit = getBodyInitial();
+      const bodyTgt = getBodyTarget();
+
       tl.fromTo(
         headerTitle,
-        { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "center left" },
-        { ...DRAMATIC_TEXT_TARGET }
+        { ...dramaticInit, transformOrigin: "center left" },
+        { ...dramaticTgt }
       )
         .fromTo(
           headerRule,
           { opacity: 0, scaleX: 0, transformOrigin: "left center" },
-          { opacity: 1, scaleX: 1, duration: 0.8, ease: "easeSmooth" },
-          "-=0.84"
+          { opacity: 1, scaleX: 1, duration: 0.6, ease: "easeSmooth" },
+          "-=0.5"
         );
 
       if (colTitle1 && colTitle2) {
         tl.fromTo(
           [colTitle1, colTitle2],
-          { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "left center" },
-          { ...DRAMATIC_TEXT_TARGET, stagger: 0.14 },
-          "-=0.6"
+          { ...dramaticInit, transformOrigin: "left center" },
+          { ...dramaticTgt, stagger: 0.1 },
+          "-=0.5"
         );
       }
 
       if (colDesc2) {
         tl.fromTo(
           colDesc2,
-          { ...BODY_TEXT_INITIAL, transformOrigin: "left center" },
-          { ...BODY_TEXT_TARGET },
-          "-=0.84"
+          { ...bodyInit, transformOrigin: "left center" },
+          { ...bodyTgt },
+          "-=0.5"
         );
       }
     },

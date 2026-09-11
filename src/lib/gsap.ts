@@ -63,3 +63,61 @@ export const BODY_TEXT_TARGET = {
   duration: 1.0,
   ease: "easeSmooth",
 };
+
+/**
+ * Mobile-friendly checks and dynamic animation presets that skip heavy CSS filter blur
+ * on mobile/touch screens to ensure smooth 60fps/120fps scrolling with zero jank.
+ */
+export const isMobileDevice = () => {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
+};
+
+export const getDramaticInitial = () => {
+  if (isMobileDevice()) {
+    return {
+      opacity: 0,
+      scale: 0.98,
+      y: 16,
+      transformOrigin: "center center",
+    };
+  }
+  return DRAMATIC_TEXT_INITIAL;
+};
+
+export const getDramaticTarget = () => {
+  if (isMobileDevice()) {
+    return {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      duration: 0.7,
+      ease: "easeSmooth",
+    };
+  }
+  return DRAMATIC_TEXT_TARGET;
+};
+
+export const getBodyInitial = () => {
+  if (isMobileDevice()) {
+    return {
+      opacity: 0,
+      y: 12,
+      transformOrigin: "center left",
+    };
+  }
+  return BODY_TEXT_INITIAL;
+};
+
+export const getBodyTarget = () => {
+  if (isMobileDevice()) {
+    return {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      ease: "easeSmooth",
+    };
+  }
+  return BODY_TEXT_TARGET;
+};
+

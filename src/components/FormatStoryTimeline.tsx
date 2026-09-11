@@ -144,11 +144,11 @@ export default function FormatStoryTimeline({
       className="relative bg-base text-primary select-none w-full scroll-smooth"
     >
       {/* ── Fixed Header Bar (Exit Button & Dynamic Format Progress) ── */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 md:px-12 py-6 flex items-center justify-between pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 md:px-12 py-3 sm:py-6 flex items-center justify-between pointer-events-none">
         {/* Exit Button */}
         <Link
           href="/"
-          className="pointer-events-auto flex items-center gap-2.5 px-4 py-2 rounded-full bg-base/85 border border-hairline hover:border-white/30 text-secondary hover:text-primary transition-all duration-300 font-[family-name:var(--font-display)] tracking-[0.2em] text-xs md:text-sm backdrop-blur-md shadow-lg shadow-black/40 group cursor-pointer"
+          className="pointer-events-auto flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-base/85 border border-hairline hover:border-white/30 text-secondary hover:text-primary transition-all duration-300 font-[family-name:var(--font-display)] tracking-[0.16em] sm:tracking-[0.2em] text-[11px] sm:text-xs md:text-sm backdrop-blur-md shadow-lg shadow-black/40 group cursor-pointer"
         >
           <span className="group-hover:-translate-x-0.5 transition-transform duration-300">
             ←
@@ -157,15 +157,15 @@ export default function FormatStoryTimeline({
         </Link>
 
         {/* Format Badge & Dynamic Moment Indicator */}
-        <div className="pointer-events-auto flex items-center gap-4 px-4 py-2 rounded-full bg-base/85 border border-hairline backdrop-blur-md shadow-lg shadow-black/40">
-          <div className="flex items-center gap-2">
+        <div className="pointer-events-auto flex items-center gap-2.5 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-base/85 border border-hairline backdrop-blur-md shadow-lg shadow-black/40">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <span className={`w-2 h-2 rounded-full ${accentColor}`} />
-            <span className="font-[family-name:var(--font-display)] text-xs md:text-sm tracking-[0.2em] text-primary">
+            <span className="font-[family-name:var(--font-display)] text-[11px] sm:text-xs md:text-sm tracking-[0.16em] sm:tracking-[0.2em] text-primary">
               {formatInfo.name} TIMELINE
             </span>
           </div>
           <span className="text-hairline">|</span>
-          <span className="font-mono text-xs text-secondary tracking-wider">
+          <span className="font-mono text-[11px] sm:text-xs text-secondary tracking-wider">
             {String(activeIndex + 1).padStart(2, "0")} /{" "}
             {String(totalMoments).padStart(2, "0")}
           </span>
@@ -189,7 +189,7 @@ export default function FormatStoryTimeline({
       </div>
 
       {/* ── Fixed Bottom-Right Arrow Controls ── */}
-      <div className="fixed bottom-4 right-6 sm:right-12 md:right-20 z-40 flex items-center gap-3">
+      <div className="fixed bottom-3 sm:bottom-4 right-4 sm:right-12 md:right-20 z-40 flex items-center gap-3">
         <div className="flex items-center gap-1.5 bg-base/80 border border-hairline rounded-full p-1 backdrop-blur-md shadow-lg shadow-black/30">
           <button
             onClick={() => scrollToMoment(activeIndex - 1)}
@@ -222,7 +222,7 @@ export default function FormatStoryTimeline({
             key={moment.id}
             id={moment.slug || moment.id}
             data-moment-index={idx}
-            className="moment-section relative min-h-screen h-screen w-full flex flex-col justify-end overflow-hidden snap-start scroll-mt-0"
+            className="moment-section relative min-h-[100dvh] h-[100dvh] sm:min-h-screen sm:h-screen w-full flex flex-col justify-end overflow-hidden snap-start scroll-mt-0"
           >
             {/* Background Media or Atmospheric Gradient */}
             <div className="absolute inset-0 w-full h-full overflow-hidden">
@@ -261,34 +261,34 @@ export default function FormatStoryTimeline({
               )}
 
               {/* Bottom Scrim for typography legibility */}
-              <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-base via-base/80 to-transparent pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-3/4 sm:h-2/3 bg-gradient-to-t from-base via-base/80 to-transparent pointer-events-none" />
 
               {/* Top Scrim for header readability */}
-              <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-base/80 to-transparent pointer-events-none" />
+              <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-b from-base/80 to-transparent pointer-events-none" />
             </div>
 
             {/* Typography & Moment Details */}
-            <div className="relative z-20 px-6 sm:px-12 md:px-16 lg:px-24 pb-16 md:pb-24 max-w-5xl">
+            <div className="relative z-20 px-5 sm:px-12 md:px-16 lg:px-24 pb-14 sm:pb-16 md:pb-24 max-w-5xl">
               {/* Metadata Badges */}
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className="px-3 py-1 rounded-md text-xs font-mono font-bold tracking-widest bg-white/10 text-white border border-white/10 backdrop-blur-md">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-md text-[11px] sm:text-xs font-mono font-bold tracking-widest bg-white/10 text-white border border-white/10 backdrop-blur-md">
                   {moment.year}
                 </span>
 
                 {moment.isRestrained ? (
-                  <span className="px-3 py-1 rounded-md text-xs font-[family-name:var(--font-display)] tracking-[0.2em] bg-white/5 text-secondary/70 border border-white/5">
+                  <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-md text-[10px] sm:text-xs font-[family-name:var(--font-display)] tracking-[0.18em] sm:tracking-[0.2em] bg-white/5 text-secondary/70 border border-white/5">
                     QUIET MILESTONE · RANJI TROPHY
                   </span>
                 ) : (
-                  <span className="px-3 py-1 rounded-md text-xs font-[family-name:var(--font-display)] tracking-[0.2em] bg-base/60 text-secondary border border-hairline">
+                  <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-md text-[10px] sm:text-xs font-[family-name:var(--font-display)] tracking-[0.18em] sm:tracking-[0.2em] bg-base/60 text-secondary border border-hairline">
                     MOMENT #{idx + 1} OF {totalMoments}
                   </span>
                 )}
 
                 {moment.stat && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-base/80 border border-hairline">
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-base/80 border border-hairline">
                     <span className={`w-1.5 h-1.5 rounded-full ${accentColor}`} />
-                    <span className="font-[family-name:var(--font-display)] text-xs tracking-[0.1em] text-primary">
+                    <span className="font-[family-name:var(--font-display)] text-[11px] sm:text-xs tracking-[0.1em] text-primary">
                       {moment.stat}
                     </span>
                   </div>
@@ -297,7 +297,7 @@ export default function FormatStoryTimeline({
 
               {/* Moment Title in Playfair Display italic */}
               <h1
-                className={`font-[family-name:var(--font-serif)] italic text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-primary font-bold mb-4 tracking-tight leading-[1.15] ${
+                className={`font-[family-name:var(--font-serif)] italic text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-primary font-bold mb-2.5 sm:mb-4 tracking-tight leading-[1.2] ${
                   moment.isRestrained ? "opacity-90 font-normal" : ""
                 }`}
               >
@@ -306,7 +306,7 @@ export default function FormatStoryTimeline({
 
               {/* Description */}
               <p
-                className={`font-[family-name:var(--font-body)] text-secondary text-base sm:text-lg md:text-xl max-w-3xl leading-relaxed ${
+                className={`font-[family-name:var(--font-body)] text-secondary text-sm sm:text-base md:text-xl max-w-3xl leading-relaxed ${
                   moment.isRestrained ? "text-secondary/75 italic max-w-2xl" : ""
                 }`}
               >

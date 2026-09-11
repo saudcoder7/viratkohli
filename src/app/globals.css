@@ -37,6 +37,7 @@
 /* ── Base Styles ── */
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -44,7 +45,31 @@ body {
   color: var(--color-primary);
   font-family: var(--font-body);
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* GPU Hardware Acceleration for zero-lag video & card rendering */
+video,
+.card,
+.moment-section,
+.hero-title,
+.hero-tagline {
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Hide scrollbar on horizontal scroll rows */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 
 /* ── Selection ── */
 ::selection {

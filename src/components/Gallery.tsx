@@ -4,8 +4,8 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import {
   gsap,
-  DRAMATIC_TEXT_INITIAL,
-  DRAMATIC_TEXT_TARGET,
+  getDramaticInitial,
+  getDramaticTarget,
 } from "@/lib/gsap";
 import { useGSAP } from "@gsap/react";
 import { GALLERY_ITEMS, type GalleryItem } from "@/lib/constants";
@@ -47,7 +47,7 @@ export default function Gallery() {
     };
   }, [activeVideo]);
 
-  // Update 23: Section Header reveal with dramatic blur+spin at ~75% viewport
+  // Section Header reveal
   useGSAP(
     () => {
       if (!sectionRef.current) return;
@@ -60,9 +60,7 @@ export default function Gallery() {
       if (reducedMotion) {
         gsap.set([headerTitle, headerRule], {
           opacity: 1,
-          filter: "blur(0px)",
           scale: 1,
-          rotation: 0,
           y: 0,
         });
         return;
@@ -71,26 +69,29 @@ export default function Gallery() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: headerTitle,
-          start: "top 75%",
-          toggleActions: "play reverse play reverse",
+          start: "top 80%",
+          toggleActions: "play none none none",
         },
       });
 
+      const dramaticInit = getDramaticInitial();
+      const dramaticTgt = getDramaticTarget();
+
       tl.fromTo(
         headerTitle,
-        { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "center left" },
-        { ...DRAMATIC_TEXT_TARGET }
+        { ...dramaticInit, transformOrigin: "center left" },
+        { ...dramaticTgt }
       ).fromTo(
         headerRule,
         { opacity: 0, scaleX: 0, transformOrigin: "left center" },
-        { opacity: 1, scaleX: 1, duration: 0.8, ease: "easeSmooth" },
-        "-=0.84"
+        { opacity: 1, scaleX: 1, duration: 0.6, ease: "easeSmooth" },
+        "-=0.5"
       );
     },
     { scope: sectionRef, dependencies: [reducedMotion] }
   );
 
-  // Gallery items entrance: staggered wave 150ms with repeatable scroll
+  // Gallery items entrance
   useGSAP(
     () => {
       if (!containerRef.current) return;
@@ -105,18 +106,18 @@ export default function Gallery() {
 
       gsap.fromTo(
         items,
-        { opacity: 0, y: 24, scale: 0.96 },
+        { opacity: 0, y: 20, scale: 0.97 },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.8,
-          stagger: 0.14,
+          duration: 0.7,
+          stagger: 0.1,
           ease: "easeSmooth",
           scrollTrigger: {
             trigger: containerRef.current,
-            start: "top 75%",
-            toggleActions: "play reverse play reverse",
+            start: "top 80%",
+            toggleActions: "play none none none",
           },
         }
       );
@@ -135,10 +136,10 @@ export default function Gallery() {
           <div className="section-rule" />
         </div>
 
-        {/* Masonry-style grid with strict 24px gap */}
+        {/* Masonry-style grid with responsive gap and auto-rows */}
         <div
           ref={containerRef}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[180px] md:auto-rows-[220px] gap-6"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[160px] sm:auto-rows-[190px] md:auto-rows-[220px] gap-3 sm:gap-6"
         >
           {GALLERY_ITEMS.map((item, i) => (
             <div

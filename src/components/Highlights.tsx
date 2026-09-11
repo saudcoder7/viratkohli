@@ -5,10 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   gsap,
-  DRAMATIC_TEXT_INITIAL,
-  DRAMATIC_TEXT_TARGET,
-  BODY_TEXT_INITIAL,
-  BODY_TEXT_TARGET,
+  getDramaticInitial,
+  getDramaticTarget,
+  getBodyInitial,
+  getBodyTarget,
 } from "@/lib/gsap";
 import { useGSAP } from "@gsap/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -68,7 +68,7 @@ export default function Highlights() {
     );
   }, []);
 
-  // Update 23/24: Section Header reveal with blur+spin and repeatable scroll toggleActions
+  // Section Header reveal
   useGSAP(
     () => {
       if (!sectionRef.current) return;
@@ -79,36 +79,36 @@ export default function Highlights() {
       if (!headerTitle || !headerRule) return;
 
       if (reducedMotion) {
-        gsap.set([headerTitle, headerRule], { opacity: 1, filter: "blur(0px)", scale: 1, rotation: 0, y: 0 });
+        gsap.set([headerTitle, headerRule], { opacity: 1, scale: 1, y: 0 });
         return;
       }
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: headerTitle,
-          start: "top 75%",
-          toggleActions: "play reverse play reverse",
+          start: "top 80%",
+          toggleActions: "play none none none",
         },
       });
 
-      // Title: Dramatic blur (14px) + spin (-4deg)
+      const dramaticInit = getDramaticInitial();
+      const dramaticTgt = getDramaticTarget();
+
       tl.fromTo(
         headerTitle,
-        { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "center left" },
-        { ...DRAMATIC_TEXT_TARGET }
-      )
-        // Accent rule: follows ~160ms behind
-        .fromTo(
-          headerRule,
-          { opacity: 0, scaleX: 0, transformOrigin: "left center" },
-          { opacity: 1, scaleX: 1, duration: 0.8, ease: "easeSmooth" },
-          "-=0.84"
-        );
+        { ...dramaticInit, transformOrigin: "center left" },
+        { ...dramaticTgt }
+      ).fromTo(
+        headerRule,
+        { opacity: 0, scaleX: 0, transformOrigin: "left center" },
+        { opacity: 1, scaleX: 1, duration: 0.6, ease: "easeSmooth" },
+        "-=0.5"
+      );
     },
     { scope: sectionRef, dependencies: [reducedMotion] }
   );
 
-  // Update 23/24: Cards entrance wave (staggered 160ms) with reliable reverse/play re-triggering
+  // Cards entrance wave (staggered 140ms)
   useGSAP(
     () => {
       if (!gridRef.current) return;
@@ -118,38 +118,33 @@ export default function Highlights() {
 
       if (reducedMotion) {
         gsap.set(cards, { opacity: 1, scale: 1, y: 0 });
-        cards.forEach((card) => {
-          gsap.set(card.querySelectorAll(".card-title, .card-desc"), {
-            opacity: 1,
-            filter: "blur(0px)",
-            scale: 1,
-            rotation: 0,
-            y: 0,
-          });
-        });
         return;
       }
 
       // Card containers entrance
       gsap.fromTo(
         cards,
-        { opacity: 0, y: 24, scale: 0.96 },
+        { opacity: 0, y: 20, scale: 0.97 },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.8,
-          stagger: 0.16, // Staggered 160ms for GPU efficiency
+          duration: 0.7,
+          stagger: 0.12,
           ease: "easeSmooth",
           scrollTrigger: {
             trigger: gridRef.current,
-            start: "top 75%",
-            toggleActions: "play reverse play reverse",
+            start: "top 80%",
+            toggleActions: "play none none none",
           },
         }
       );
 
-      // Card Title & Description internal blur+spin sequence
+      const dramaticInit = getDramaticInitial();
+      const dramaticTgt = getDramaticTarget();
+      const bodyInit = getBodyInitial();
+      const bodyTgt = getBodyTarget();
+
       cards.forEach((card, index) => {
         const title = card.querySelector(".card-title");
         const desc = card.querySelector(".card-desc");
@@ -158,24 +153,23 @@ export default function Highlights() {
           const cardTl = gsap.timeline({
             scrollTrigger: {
               trigger: card,
-              start: "top 78%",
-              toggleActions: "play reverse play reverse",
+              start: "top 85%",
+              toggleActions: "play none none none",
             },
-            delay: (index % 3) * 0.14,
+            delay: (index % 3) * 0.1,
           });
 
-          // Moment Title: Dramatic blur (14px) + spin (-4deg)
-          cardTl.fromTo(
-            title,
-            { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "left center" },
-            { ...DRAMATIC_TEXT_TARGET }
-          )
-            // Description: Lighter blur (8px) + gentle tilt (-1deg) following ~160ms behind
+          cardTl
+            .fromTo(
+              title,
+              { ...dramaticInit, transformOrigin: "left center" },
+              { ...dramaticTgt }
+            )
             .fromTo(
               desc,
-              { ...BODY_TEXT_INITIAL, transformOrigin: "left center" },
-              { ...BODY_TEXT_TARGET },
-              "-=0.84"
+              { ...bodyInit, transformOrigin: "left center" },
+              { ...bodyTgt },
+              "-=0.5"
             );
         }
       });
@@ -183,7 +177,7 @@ export default function Highlights() {
     { scope: gridRef, dependencies: [reducedMotion, activeFilter] }
   );
 
-  // Update 24: Exact format filtering (none of the 6 curated highlights are Test)
+  // Exact format filtering
   const filteredHighlights = HIGHLIGHTS.filter((h) => {
     if (activeFilter === "all") return true;
     return h.format === activeFilter;
@@ -200,15 +194,15 @@ export default function Highlights() {
           <div className="section-rule" />
         </div>
 
-        {/* Filter Tabs with interactive scaling */}
-        <div className="flex flex-wrap gap-3 mb-8 md:mb-12">
+        {/* Filter Tabs with interactive scaling and mobile swipe */}
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap pb-2 mb-6 sm:mb-8 md:mb-12">
           {FILTER_TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveFilter(tab.key)}
               className={`
-                font-[family-name:var(--font-display)] text-sm tracking-[0.15em]
-                px-6 py-3 rounded-xl transition-all duration-200 cursor-pointer
+                font-[family-name:var(--font-display)] text-xs sm:text-sm tracking-[0.15em]
+                px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl transition-all duration-200 cursor-pointer whitespace-nowrap
                 hover:scale-[1.03] active:scale-95
                 ${
                   activeFilter === tab.key

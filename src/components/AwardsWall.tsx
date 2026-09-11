@@ -3,10 +3,10 @@
 import { useRef, useEffect, useState } from "react";
 import {
   gsap,
-  DRAMATIC_TEXT_INITIAL,
-  DRAMATIC_TEXT_TARGET,
-  BODY_TEXT_INITIAL,
-  BODY_TEXT_TARGET,
+  getDramaticInitial,
+  getDramaticTarget,
+  getBodyInitial,
+  getBodyTarget,
 } from "@/lib/gsap";
 import { useGSAP } from "@gsap/react";
 import { AWARDS } from "@/lib/constants";
@@ -34,7 +34,7 @@ export default function AwardsWall() {
     );
   }, []);
 
-  // Update 23: Section Header reveal with dramatic blur+spin at ~75% viewport
+  // Section Header reveal
   useGSAP(
     () => {
       if (!sectionRef.current) return;
@@ -47,9 +47,7 @@ export default function AwardsWall() {
       if (reducedMotion) {
         gsap.set([headerTitle, headerRule], {
           opacity: 1,
-          filter: "blur(0px)",
           scale: 1,
-          rotation: 0,
           y: 0,
         });
         return;
@@ -58,26 +56,29 @@ export default function AwardsWall() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: headerTitle,
-          start: "top 75%",
-          toggleActions: "play reverse play reverse",
+          start: "top 80%",
+          toggleActions: "play none none none",
         },
       });
 
+      const dramaticInit = getDramaticInitial();
+      const dramaticTgt = getDramaticTarget();
+
       tl.fromTo(
         headerTitle,
-        { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "center left" },
-        { ...DRAMATIC_TEXT_TARGET }
+        { ...dramaticInit, transformOrigin: "center left" },
+        { ...dramaticTgt }
       ).fromTo(
         headerRule,
         { opacity: 0, scaleX: 0, transformOrigin: "left center" },
-        { opacity: 1, scaleX: 1, duration: 0.8, ease: "easeSmooth" },
-        "-=0.84"
+        { opacity: 1, scaleX: 1, duration: 0.6, ease: "easeSmooth" },
+        "-=0.5"
       );
     },
     { scope: sectionRef, dependencies: [reducedMotion] }
   );
 
-  // Update 23/24: Cards entrance wave (160ms stagger) + title dramatic blur+spin with reliable re-trigger
+  // Cards entrance wave (120ms stagger)
   useGSAP(
     () => {
       if (!gridRef.current) return;
@@ -87,38 +88,34 @@ export default function AwardsWall() {
 
       if (reducedMotion) {
         gsap.set(cards, { opacity: 1, scale: 1, y: 0 });
-        cards.forEach((card) => {
-          gsap.set(card.querySelectorAll(".award-title, .award-meta"), {
-            opacity: 1,
-            filter: "blur(0px)",
-            scale: 1,
-            rotation: 0,
-            y: 0,
-          });
-        });
         return;
       }
 
       // Card container entrance wave
       gsap.fromTo(
         cards,
-        { opacity: 0, y: 24, scale: 0.96 },
+        { opacity: 0, y: 20, scale: 0.97 },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.8,
-          stagger: 0.14,
+          duration: 0.7,
+          stagger: 0.1,
           ease: "easeSmooth",
           scrollTrigger: {
             trigger: gridRef.current,
-            start: "top 75%",
-            toggleActions: "play reverse play reverse",
+            start: "top 80%",
+            toggleActions: "play none none none",
           },
         }
       );
 
-      // Card inner text blur+spin
+      const dramaticInit = getDramaticInitial();
+      const dramaticTgt = getDramaticTarget();
+      const bodyInit = getBodyInitial();
+      const bodyTgt = getBodyTarget();
+
+      // Card inner text
       cards.forEach((card, index) => {
         const title = card.querySelector(".award-title");
         const meta = card.querySelector(".award-meta");
@@ -127,23 +124,23 @@ export default function AwardsWall() {
           const cardTl = gsap.timeline({
             scrollTrigger: {
               trigger: card,
-              start: "top 78%",
-              toggleActions: "play reverse play reverse",
+              start: "top 85%",
+              toggleActions: "play none none none",
             },
-            delay: (index % 4) * 0.12,
+            delay: (index % 4) * 0.08,
           });
 
           cardTl
             .fromTo(
               title,
-              { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "left center" },
-              { ...DRAMATIC_TEXT_TARGET }
+              { ...dramaticInit, transformOrigin: "left center" },
+              { ...dramaticTgt }
             )
             .fromTo(
               meta,
-              { ...BODY_TEXT_INITIAL, transformOrigin: "left center" },
-              { ...BODY_TEXT_TARGET },
-              "-=0.84"
+              { ...bodyInit, transformOrigin: "left center" },
+              { ...bodyTgt },
+              "-=0.5"
             );
         }
       });
@@ -165,7 +162,7 @@ export default function AwardsWall() {
         {/* Grid with staggered entrance and translateY(-6px) hover lift */}
         <div
           ref={gridRef}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
         >
           {AWARDS.map((award) => (
             <div

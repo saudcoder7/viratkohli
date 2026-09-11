@@ -5,10 +5,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   gsap,
-  DRAMATIC_TEXT_INITIAL,
-  DRAMATIC_TEXT_TARGET,
-  BODY_TEXT_INITIAL,
-  BODY_TEXT_TARGET,
+  getDramaticInitial,
+  getDramaticTarget,
+  getBodyInitial,
+  getBodyTarget,
 } from "@/lib/gsap";
 import { useGSAP } from "@gsap/react";
 import {
@@ -89,7 +89,6 @@ export default function StatsWidget() {
     );
   }, []);
 
-  // Update 23: Section Header reveal with dramatic blur+spin at ~75% viewport
   useGSAP(
     () => {
       if (!sectionRef.current) return;
@@ -103,9 +102,7 @@ export default function StatsWidget() {
       if (reducedMotion) {
         gsap.set([headerTitle, headerDesc, headerRule], {
           opacity: 1,
-          filter: "blur(0px)",
           scale: 1,
-          rotation: 0,
           y: 0,
         });
         return;
@@ -114,25 +111,28 @@ export default function StatsWidget() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: headerTitle,
-          start: "top 75%",
-          toggleActions: "play reverse play reverse",
+          start: "top 80%",
+          toggleActions: "play none none none",
         },
       });
 
-      // Title dramatic blur+spin
+      const dramaticInit = getDramaticInitial();
+      const dramaticTgt = getDramaticTarget();
+      const bodyInit = getBodyInitial();
+      const bodyTgt = getBodyTarget();
+
       tl.fromTo(
         headerTitle,
-        { ...DRAMATIC_TEXT_INITIAL, transformOrigin: "center left" },
-        { ...DRAMATIC_TEXT_TARGET }
+        { ...dramaticInit, transformOrigin: "center left" },
+        { ...dramaticTgt }
       );
 
-      // Description lighter blur following ~160ms behind
       if (headerDesc) {
         tl.fromTo(
           headerDesc,
-          { ...BODY_TEXT_INITIAL, transformOrigin: "center left" },
-          { ...BODY_TEXT_TARGET },
-          "-=0.84"
+          { ...bodyInit, transformOrigin: "center left" },
+          { ...bodyTgt },
+          "-=0.5"
         );
       }
 
@@ -140,8 +140,8 @@ export default function StatsWidget() {
         tl.fromTo(
           headerRule,
           { opacity: 0, scaleX: 0, transformOrigin: "left center" },
-          { opacity: 1, scaleX: 1, duration: 0.8, ease: "easeSmooth" },
-          "-=0.8"
+          { opacity: 1, scaleX: 1, duration: 0.6, ease: "easeSmooth" },
+          "-=0.5"
         );
       }
     },
@@ -178,8 +178,8 @@ export default function StatsWidget() {
           <div className="section-rule mt-4" />
         </div>
 
-        {/* Tab Control with Sliding Active Indicator Pill */}
-        <div className="flex flex-wrap items-center justify-start gap-3 mb-8 md:mb-12 pb-4 border-b border-hairline">
+        {/* Tab Control with Sliding Active Indicator Pill and Mobile Swipe */}
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap pb-2 mb-6 sm:mb-8 md:mb-12 border-b border-hairline">
           {FORMAT_KEYS.map((key) => {
             const info = FORMAT_LABELS[key];
             const isActive = activeFormat === key;
@@ -193,8 +193,8 @@ export default function StatsWidget() {
                 id={`tab-btn-${key}`}
                 onClick={() => setActiveFormat(key, false)}
                 className={`
-                  relative flex items-center gap-2.5 px-6 py-3 rounded-xl transition-all duration-200 cursor-pointer
-                  font-[family-name:var(--font-display)] tracking-[0.2em] text-sm sm:text-base hover:scale-[1.03] active:scale-95
+                  relative flex items-center gap-2 sm:gap-2.5 px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl transition-all duration-200 cursor-pointer whitespace-nowrap
+                  font-[family-name:var(--font-display)] tracking-[0.18em] sm:tracking-[0.2em] text-xs sm:text-base hover:scale-[1.03] active:scale-95
                   ${
                     isActive
                       ? "text-white"
@@ -226,7 +226,7 @@ export default function StatsWidget() {
                 />
                 <span className="relative z-10">{info.name}</span>
                 <span
-                  className={`relative z-10 text-xs px-1.5 py-0.5 rounded font-mono ${
+                  className={`relative z-10 text-[11px] sm:text-xs px-1.5 py-0.5 rounded font-mono ${
                     isActive ? "bg-black/25 text-white" : "bg-base text-secondary"
                   }`}
                 >
