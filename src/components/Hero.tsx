@@ -30,43 +30,45 @@ export default function Hero() {
     const video = videoRef.current;
     if (!video) return;
 
-    // Start unmuted by default ("no mute as we turn on the website")
-    video.muted = false;
+    // 1. Start the video playing immediately when the website opens
+    video.play().catch(() => {});
 
-    const startAudioPlayback = async () => {
-      try {
-        await video.play();
+    // 2. Sound is on by default ("sound should be on by default but there is button to mute it")
+    const enableSound = () => {
+      if (!userManuallyMutedRef.current && isHeroInViewRef.current && videoRef.current) {
+        videoRef.current.muted = false;
         setMuted(false);
-      } catch {
-        // If autoplay with sound is blocked by browser policy before user interaction:
-        // Play muted initially, and unlock audio immediately on first user interaction
-        video.muted = true;
-        setMuted(true);
-        video.play().catch(() => {});
-
-        const unlockOnInteraction = () => {
-          if (!userManuallyMutedRef.current && isHeroInViewRef.current && videoRef.current) {
-            videoRef.current.muted = false;
-            setMuted(false);
-            videoRef.current.play().catch(() => {});
-          }
-          window.removeEventListener("click", unlockOnInteraction);
-          window.removeEventListener("touchstart", unlockOnInteraction);
-          window.removeEventListener("keydown", unlockOnInteraction);
-          window.removeEventListener("scroll", unlockOnInteraction);
-        };
-
-        window.addEventListener("click", unlockOnInteraction, { once: true });
-        window.addEventListener("touchstart", unlockOnInteraction, { once: true });
-        window.addEventListener("keydown", unlockOnInteraction, { once: true });
-        window.addEventListener("scroll", unlockOnInteraction, { once: true });
       }
     };
 
-    startAudioPlayback();
+    // Attempt to unmute immediately
+    try {
+      video.muted = false;
+      setMuted(false);
+    } catch {
+      video.muted = true;
+      setMuted(true);
+    }
+
+    // If the browser restricts unmuted autoplay before a gesture, unmute on first interaction
+    const unlockOnGesture = () => {
+      enableSound();
+      window.removeEventListener("pointerdown", unlockOnGesture);
+      window.removeEventListener("click", unlockOnGesture);
+      window.removeEventListener("touchstart", unlockOnGesture);
+      window.removeEventListener("keydown", unlockOnGesture);
+      window.removeEventListener("scroll", unlockOnGesture);
+    };
+
+    window.addEventListener("pointerdown", unlockOnGesture, { once: true });
+    window.addEventListener("click", unlockOnGesture, { once: true });
+    window.addEventListener("touchstart", unlockOnGesture, { once: true });
+    window.addEventListener("keydown", unlockOnGesture, { once: true });
+    window.addEventListener("scroll", unlockOnGesture, { once: true });
   }, []);
 
-  // Auto-mute and pause video when scrolling down past hero; auto-unmute and play when scrolling back up
+  // When scrolling down: mute sound. When scrolling back up: unmute sound.
+  // Video continues playing smoothly in background without stopping.
   useEffect(() => {
     const heroEl = containerRef.current;
     if (!heroEl) return;
@@ -77,15 +79,11 @@ export default function Hero() {
       if (!video) return;
 
       if (!inView) {
-        // Scrolled down away from hero: pause video and mute sound to completely free GPU and battery
-        if (!video.muted) {
-          video.muted = true;
-        }
-        video.pause();
+        // Scrolled down away from hero: mute sound
+        video.muted = true;
         setMuted(true);
       } else {
-        // Scrolled back up to hero: resume video playback smoothly
-        video.play().catch(() => {});
+        // Scrolled back up to hero: restore sound unless user manually muted
         if (!userManuallyMutedRef.current) {
           video.muted = false;
           setMuted(false);
@@ -123,9 +121,6 @@ export default function Hero() {
       setMuted(nextMuted);
       // Remember user manual choice
       userManuallyMutedRef.current = nextMuted;
-      if (!nextMuted) {
-        videoRef.current.play().catch(() => {});
-      }
     }
   };
 
@@ -209,6 +204,7 @@ export default function Hero() {
         <video
           ref={videoRef}
           autoPlay
+          muted
           loop
           playsInline
           preload="auto"
