@@ -15,7 +15,9 @@ import { useGSAP } from "@gsap/react";
 export default function Hero() {
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
+  const userManuallyMutedRef = useRef(false);
+  const isHeroInViewRef = useRef(true);
+  const [muted, setMuted] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const { stats } = useLiveStats();
   const heroStats = calculateHeroStats(stats);
@@ -24,12 +26,105 @@ export default function Hero() {
     setReducedMotion(
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     );
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Start unmuted by default ("no mute as we turn on the website")
+    video.muted = false;
+
+    const startAudioPlayback = async () => {
+      try {
+        await video.play();
+        setMuted(false);
+      } catch {
+        // If autoplay with sound is blocked by browser policy before user interaction:
+        // Play muted initially, and unlock audio immediately on first user interaction
+        video.muted = true;
+        setMuted(true);
+        video.play().catch(() => {});
+
+        const unlockOnInteraction = () => {
+          if (!userManuallyMutedRef.current && isHeroInViewRef.current && videoRef.current) {
+            videoRef.current.muted = false;
+            setMuted(false);
+            videoRef.current.play().catch(() => {});
+          }
+          window.removeEventListener("click", unlockOnInteraction);
+          window.removeEventListener("touchstart", unlockOnInteraction);
+          window.removeEventListener("keydown", unlockOnInteraction);
+          window.removeEventListener("scroll", unlockOnInteraction);
+        };
+
+        window.addEventListener("click", unlockOnInteraction, { once: true });
+        window.addEventListener("touchstart", unlockOnInteraction, { once: true });
+        window.addEventListener("keydown", unlockOnInteraction, { once: true });
+        window.addEventListener("scroll", unlockOnInteraction, { once: true });
+      }
+    };
+
+    startAudioPlayback();
+  }, []);
+
+  // Auto-mute when scrolling down past hero, auto-unmute when scrolling back up
+  useEffect(() => {
+    const heroEl = containerRef.current;
+    if (!heroEl) return;
+
+    const handleVisibilityChange = (inView: boolean) => {
+      isHeroInViewRef.current = inView;
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (!inView) {
+        // Scrolled down away from hero: no sound
+        if (!video.muted) {
+          video.muted = true;
+          setMuted(true);
+        }
+      } else {
+        // Scrolled back up to hero: restore sound if user didn't explicitly mute
+        if (!userManuallyMutedRef.current) {
+          video.muted = false;
+          setMuted(false);
+          video.play().catch(() => {});
+        }
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        handleVisibilityChange(entry.isIntersecting && entry.intersectionRatio > 0.15);
+      },
+      { threshold: [0, 0.15, 0.5] }
+    );
+
+    observer.observe(heroEl);
+
+    const handleScroll = () => {
+      const rect = heroEl.getBoundingClientRect();
+      const inView = rect.bottom > 120 && rect.top < window.innerHeight;
+      handleVisibilityChange(inView);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const toggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setMuted(videoRef.current.muted);
+      const nextMuted = !videoRef.current.muted;
+      videoRef.current.muted = nextMuted;
+      setMuted(nextMuted);
+      // Remember user manual choice
+      userManuallyMutedRef.current = nextMuted;
+      if (!nextMuted) {
+        videoRef.current.play().catch(() => {});
+      }
     }
   };
 
@@ -113,7 +208,6 @@ export default function Hero() {
         <video
           ref={videoRef}
           autoPlay
-          muted
           loop
           playsInline
           className="w-full h-full object-cover"
@@ -163,10 +257,13 @@ export default function Hero() {
       {/* Mute toggle button with interactive hover/active physics */}
       <button
         onClick={toggleMute}
-        className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white text-sm cursor-pointer hover:bg-white/20 hover:scale-105 active:scale-95 transition-all duration-200"
-        aria-label={muted ? "Unmute video" : "Mute video"}
+        className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white text-sm cursor-pointer hover:bg-black/60 hover:scale-105 active:scale-95 transition-all duration-200 shadow-xl"
+        aria-label={muted ? "Unmute video sound" : "Mute video sound"}
       >
         <span className="text-base">{muted ? "🔇" : "🔊"}</span>
+        <span className="text-xs font-semibold tracking-wider uppercase text-white/90">
+          {muted ? "Muted" : "Sound On"}
+        </span>
       </button>
 
       {/* Scroll indicator */}
