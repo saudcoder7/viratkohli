@@ -24,43 +24,29 @@ export { gsap, ScrollTrigger, CustomEase };
  */
 export const DRAMATIC_TEXT_INITIAL = {
   opacity: 0,
-  filter: "blur(14px)",
-  scale: 1.08,
-  rotation: -4,
-  y: 24,
+  scale: 0.98,
+  y: 18,
   transformOrigin: "center center",
 };
 
 export const DRAMATIC_TEXT_TARGET = {
   opacity: 1,
-  filter: "blur(0px)",
   scale: 1,
-  rotation: 0,
   y: 0,
-  duration: 1.0,
+  duration: 0.55,
   ease: "easeSmooth",
 };
 
-/**
- * Lighter blur+spin effect for longer body text and description lines:
- * Near-zero rotation (-1deg), smaller scale difference (1.02), softer blur (8px)
- */
 export const BODY_TEXT_INITIAL = {
   opacity: 0,
-  filter: "blur(8px)",
-  scale: 1.02,
-  rotation: -1,
-  y: 18,
+  y: 12,
   transformOrigin: "center left",
 };
 
 export const BODY_TEXT_TARGET = {
   opacity: 1,
-  filter: "blur(0px)",
-  scale: 1,
-  rotation: 0,
   y: 0,
-  duration: 1.0,
+  duration: 0.55,
   ease: "easeSmooth",
 };
 

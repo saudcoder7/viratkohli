@@ -13,7 +13,7 @@ interface CountUpProps {
 export default function CountUp({
   target,
   suffix = "",
-  duration = 2,
+  duration = 1.0,
   className = "",
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);
