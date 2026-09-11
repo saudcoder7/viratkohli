@@ -17,7 +17,7 @@ export default function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const userManuallyMutedRef = useRef(false);
   const isHeroInViewRef = useRef(true);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const { stats } = useLiveStats();
   const heroStats = calculateHeroStats(stats);
@@ -30,41 +30,49 @@ export default function Hero() {
     const video = videoRef.current;
     if (!video) return;
 
-    // 1. Start the video playing immediately when the website opens
-    video.play().catch(() => {});
+    // Ensure DOM properties are set for 100% mobile and laptop autoplay compliance
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
 
-    // 2. Sound is on by default ("sound should be on by default but there is button to mute it")
-    const enableSound = () => {
+    // Immediately start playing the video on mount
+    const startPlay = () => {
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+    };
+
+    startPlay();
+    video.addEventListener("canplay", startPlay, { once: true });
+    video.addEventListener("loadeddata", startPlay, { once: true });
+
+    // Enable sound on first user gesture (tap, click, keydown, scroll)
+    const unlockSoundOnGesture = () => {
+      startPlay();
       if (!userManuallyMutedRef.current && isHeroInViewRef.current && videoRef.current) {
         videoRef.current.muted = false;
         setMuted(false);
       }
+      cleanup();
     };
 
-    // Attempt to unmute immediately
-    try {
-      video.muted = false;
-      setMuted(false);
-    } catch {
-      video.muted = true;
-      setMuted(true);
-    }
-
-    // If the browser restricts unmuted autoplay before a gesture, unmute on first interaction
-    const unlockOnGesture = () => {
-      enableSound();
-      window.removeEventListener("pointerdown", unlockOnGesture);
-      window.removeEventListener("click", unlockOnGesture);
-      window.removeEventListener("touchstart", unlockOnGesture);
-      window.removeEventListener("keydown", unlockOnGesture);
-      window.removeEventListener("scroll", unlockOnGesture);
+    const cleanup = () => {
+      window.removeEventListener("pointerdown", unlockSoundOnGesture);
+      window.removeEventListener("touchstart", unlockSoundOnGesture);
+      window.removeEventListener("click", unlockSoundOnGesture);
+      window.removeEventListener("keydown", unlockSoundOnGesture);
     };
 
-    window.addEventListener("pointerdown", unlockOnGesture, { once: true });
-    window.addEventListener("click", unlockOnGesture, { once: true });
-    window.addEventListener("touchstart", unlockOnGesture, { once: true });
-    window.addEventListener("keydown", unlockOnGesture, { once: true });
-    window.addEventListener("scroll", unlockOnGesture, { once: true });
+    window.addEventListener("pointerdown", unlockSoundOnGesture, { passive: true });
+    window.addEventListener("touchstart", unlockSoundOnGesture, { passive: true });
+    window.addEventListener("click", unlockSoundOnGesture, { passive: true });
+    window.addEventListener("keydown", unlockSoundOnGesture, { passive: true });
+
+    return () => {
+      cleanup();
+      video.removeEventListener("canplay", startPlay);
+      video.removeEventListener("loadeddata", startPlay);
+    };
   }, []);
 
   // When scrolling down: mute sound. When scrolling back up: unmute sound.
@@ -115,12 +123,16 @@ export default function Hero() {
   }, []);
 
   const toggleMute = () => {
-    if (videoRef.current) {
-      const nextMuted = !videoRef.current.muted;
-      videoRef.current.muted = nextMuted;
+    const video = videoRef.current;
+    if (video) {
+      const nextMuted = !video.muted;
+      video.muted = nextMuted;
       setMuted(nextMuted);
       // Remember user manual choice
       userManuallyMutedRef.current = nextMuted;
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
     }
   };
 
